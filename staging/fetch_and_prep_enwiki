@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+wget https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-abstract.xml.gz
+gzip -d enwiki-latest-abstract.xml.gz
+
+spark-submit --packages com.databricks:spark-xml_2.11:0.9.0 \
+    --master "local[*]" \
+    --name "TransformEnwiki" \
+    transform_enwiki.py enwiki-latest-abstract.xml
+
+tar -czf enwiki.tar.gz enwiki
