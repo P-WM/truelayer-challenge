@@ -23,7 +23,7 @@ class MovieProcessor:
         ).withColumn(
             'revenue',
             col('revenue').cast(DecimalType(15, 4))
-        )
+        ).where(col('budget') >= 1000).where(col('revenue') >= 1000)
 
     @staticmethod
     def _titles_from_movies(movies: DataFrame) -> List[str]:
