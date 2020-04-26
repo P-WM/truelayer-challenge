@@ -46,7 +46,7 @@ class MovieProcessor:
 
     @staticmethod
     def _titles_from_movies(movies: DataFrame) -> List[str]:
-        pass
+        return [movie.title for movie in movies.collect()]
 
     @property
     def all_movies(self) -> DataFrame:
@@ -62,7 +62,12 @@ class MovieProcessor:
                                                 'budget', 'revenue')
 
     def top_n_movies(self, n: int) -> DataFrame:
-        pass
+        return self.all_movies \
+            .orderBy(col('revenue_budget_ratio'), ascending=False) \
+            .limit(n) \
+            .cache()
 
     def top_n_movie_titles(self, n: int) -> List[str]:
-        pass
+        top_n_movies = self.top_n_movies(n)
+
+        return self._titles_from_movies(top_n_movies)

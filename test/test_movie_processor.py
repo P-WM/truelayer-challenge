@@ -135,3 +135,19 @@ class TestMovieProcess(TestCase):
         ]
 
         self.assertCountEqual(actual_ratios, expected_ratios)
+
+    def test_picks_top_n_correctly(self):
+        actual_movies = self.test_processor.top_n_movies(2).select(
+            'title').collect()
+        expected_movies = [
+            Row(title='The Strangers'),
+            Row(title='Mission: Impossible II')
+        ]
+
+        self.assertCountEqual(actual_movies, expected_movies)
+
+    def test_returns_top_n_titles_correctly(self):
+        actual_titles = self.test_processor.top_n_movie_titles(2)
+        expected_titles = ['The Strangers', 'Mission: Impossible II']
+
+        self.assertCountEqual(actual_titles, expected_titles)
