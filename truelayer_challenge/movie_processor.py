@@ -1,4 +1,6 @@
 from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql.types import DecimalType
+from pyspark.sql.functions import *
 from typing import List
 
 
@@ -16,7 +18,12 @@ class MovieProcessor:
         pass
 
     def _clean_movies(self) -> DataFrame:
-        pass
+        return self.raw_movies.withColumn(
+            'budget', col('budget').cast(DecimalType(15, 4))
+        ).withColumn(
+            'revenue',
+            col('revenue').cast(DecimalType(15, 4))
+        )
 
     @staticmethod
     def _titles_from_movies(movies: DataFrame) -> List[str]:
