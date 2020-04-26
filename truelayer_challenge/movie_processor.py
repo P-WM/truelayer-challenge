@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.types import DecimalType
+from pyspark.sql.types import DecimalType, DateType
 from pyspark.sql.functions import col
 from typing import List
 
@@ -30,7 +30,7 @@ class MovieProcessor:
     def _calculate_revenue_budget_ratio(movies: DataFrame) -> DataFrame:
         return movies.withColumn( \
             'revenue_budget_ratio',
-            (movies.revenue / movies.budget).cast(DecimalType(7, 2))
+            (movies.revenue / movies.budget).cast(DecimalType(8, 2))
         )
 
     @staticmethod
@@ -39,7 +39,18 @@ class MovieProcessor:
 
     @property
     def all_movies(self) -> DataFrame:
-        return self.raw_movies
+        clean_movies = self._clean_movies(self.raw_movies)
+        movies_with_ratios = self._calculate_revenue_budget_ratio(clean_movies)
+
+        movies_with_correct_types = movies_with_ratios \
+            .withColumn('rating', col('popularity').cast(DecimalType(10, 6))) \
+            .withColumn('release_date', col('release_date').cast(DateType()))
+
+        return movies_with_correct_types.select('title',
+                                                'production_companies',
+                                                'release_date', 'rating',
+                                                'revenue_budget_ratio',
+                                                'budget', 'revenue')
 
     def top_n_movies(self, n: int) -> DataFrame:
         pass
