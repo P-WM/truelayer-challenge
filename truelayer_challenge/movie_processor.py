@@ -24,7 +24,9 @@ class MovieProcessor:
         safe_budget = cls._ensure_valid_money(movies, 'budget')
         safe_revenue = cls._ensure_valid_money(safe_budget, 'revenue')
 
-        return safe_revenue
+        return safe_revenue \
+            .withColumn('rating', col('popularity').cast(DecimalType(10, 6))) \
+            .withColumn('release_date', col('release_date').cast(DateType()))
 
     @staticmethod
     def _calculate_revenue_budget_ratio(movies: DataFrame) -> DataFrame:
@@ -49,13 +51,11 @@ class MovieProcessor:
     @property
     def all_movies(self) -> DataFrame:
         clean_movies = self._clean_movies(self.raw_movies)
-        movies_with_ratios = self._calculate_revenue_budget_ratio(clean_movies)
+        with_ratios = self._calculate_revenue_budget_ratio(clean_movies)
+        with_production_companies = self._add_production_company_names(
+            with_ratios)
 
-        movies_with_correct_types = movies_with_ratios \
-            .withColumn('rating', col('popularity').cast(DecimalType(10, 6))) \
-            .withColumn('release_date', col('release_date').cast(DateType()))
-
-        return movies_with_correct_types.select('title',
+        return with_production_companies.select('title',
                                                 'production_companies',
                                                 'release_date', 'rating',
                                                 'revenue_budget_ratio',

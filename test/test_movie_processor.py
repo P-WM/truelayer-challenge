@@ -2,7 +2,7 @@ from unittest import TestCase
 from decimal import Decimal
 from pyspark.sql import Row, SparkSession, DataFrame
 from pyspark.sql.functions import *
-from pyspark.sql.types import StructType, StructField, DecimalType, DateType, StringType
+from pyspark.sql.types import ArrayType, StructType, StructField, DecimalType, DateType, StringType
 
 from truelayer_challenge.movie_processor import MovieProcessor
 from test.fixtures import movies, movies_with_low_bud_or_rev
@@ -102,14 +102,15 @@ class TestMovieProcess(TestCase):
         actual_schema = self.test_processor.all_movies.schema
         expected_schema = StructType([
             StructField('title', StringType(), True),
-            StructField('production_companies', StringType(), True),
+            StructField('production_companies', ArrayType(StringType(), True),
+                        True),
             StructField('release_date', DateType(), True),
             StructField('rating', DecimalType(10, 6), True),
             StructField('revenue_budget_ratio', DecimalType(8, 2), True),
             StructField('budget', DecimalType(15, 4), True),
             StructField('revenue', DecimalType(15, 4), True),
         ])
-
+        print(actual_schema)
         self.assertEqual(actual_schema, expected_schema)
 
     def test_calculates_ratios_correctly(self):
