@@ -22,10 +22,10 @@ class TestMovieProcess(TestCase):
 
     def compare_unordered_dataframes(self, actual: DataFrame,
                                      expected: DataFrame):
-        actual_for_comparison = set(actual.collect())
-        expected_for_comparison = set(expected.collect())
+        actual_for_comparison = actual.collect()
+        expected_for_comparison = expected.collect()
 
-        self.assertEqual(actual_for_comparison, expected_for_comparison)
+        self.assertCountEqual(actual_for_comparison, expected_for_comparison)
 
     def test_cleans_number_columns_correctly(self):
         """
@@ -66,7 +66,37 @@ class TestMovieProcess(TestCase):
         self.assertEqual(actual_schema, expected_schema)
 
     def test_concats_production_company_names(self):
-        pass
+        actual_movies = self.test_processor._add_production_company_names(
+            self.test_movies).select('production_companies',
+                                     'title').collect()
+
+        expected_movies = [
+            Row(title='Executive Decision',
+                production_companies=['Silver Pictures', 'Warner Bros.']),
+            Row(title='Mission: Impossible II',
+                production_companies=[
+                    'Paramount Pictures', 'Cruise/Wagner Productions',
+                    'Munich Film Partners & Company (MFP) MI2 Productions'
+                ]),
+            Row(title='Shalako',
+                production_companies=[
+                    'Central Cinema Company Film',
+                    'Palomar Pictures International',
+                    'Kingston Film Productions Ltd.'
+                ]),
+            Row(title='Anywhere But Here',
+                production_companies=[
+                    'Twentieth Century Fox Film Corporation',
+                    'Fox 2000 Pictures'
+                ]),
+            Row(title='The Strangers',
+                production_companies=[
+                    'Rogue Pictures', 'Vertigo Entertainment',
+                    'Intrepid Pictures'
+                ])
+        ]
+
+        self.assertCountEqual(actual_movies, expected_movies)
 
     def test_returns_correct_schema(self):
         actual_schema = self.test_processor.all_movies.schema
@@ -79,9 +109,6 @@ class TestMovieProcess(TestCase):
             StructField('budget', DecimalType(15, 4), True),
             StructField('revenue', DecimalType(15, 4), True),
         ])
-
-        print(actual_schema)
-        print(expected_schema)
 
         self.assertEqual(actual_schema, expected_schema)
 

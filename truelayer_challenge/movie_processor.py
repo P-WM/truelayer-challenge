@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.types import DecimalType, DateType
-from pyspark.sql.functions import col
+from pyspark.sql.types import DecimalType, DateType, ArrayType, StructField, StructType, StringType
+from pyspark.sql.functions import col, from_json
 from typing import List
 
 
@@ -32,6 +32,15 @@ class MovieProcessor:
             'revenue_budget_ratio',
             (movies.revenue / movies.budget).cast(DecimalType(8, 2))
         )
+
+    @staticmethod
+    def _add_production_company_names(movies: DataFrame) -> DataFrame:
+        production_company_schema = ArrayType(
+            StructType([StructField('name', StringType(), False)]))
+
+        return movies \
+            .withColumn('production_companies', from_json(movies.production_companies, production_company_schema)) \
+            .withColumn('production_companies', col('production_companies.name'))
 
     @staticmethod
     def _titles_from_movies(movies: DataFrame) -> List[str]:
