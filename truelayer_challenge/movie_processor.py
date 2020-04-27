@@ -1,13 +1,13 @@
-from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql import DataFrame
 from pyspark.sql.types import DecimalType, DateType, ArrayType, StructField, StructType, StringType
-from pyspark.sql.functions import col, from_json
+from pyspark.sql.functions import col, from_json, year
 from typing import List
 
 
 class MovieProcessor:
-    def __init__(self, *, spark: SparkSession, data: DataFrame):
-        self.spark = spark
+    def __init__(self, *, data: DataFrame):
         self.raw_movies = data
+        self.processed_movies = None
 
     @staticmethod
     def _ensure_valid_money(movies: DataFrame, key: str):
@@ -45,21 +45,35 @@ class MovieProcessor:
             .withColumn('production_companies', col('production_companies.name'))
 
     @staticmethod
+    def _add_year(movies: DataFrame) -> DataFrame:
+        return movies \
+            .withColumn('year', year(movies.release_date))
+
+    @staticmethod
     def _titles_from_movies(movies: DataFrame) -> List[str]:
         return [movie.title for movie in movies.collect()]
 
     @property
     def all_movies(self) -> DataFrame:
-        clean_movies = self._clean_movies(self.raw_movies)
-        with_ratios = self._calculate_revenue_budget_ratio(clean_movies)
-        with_production_companies = self._add_production_company_names(
-            with_ratios)
+        if self.processed_movies:
+            return self.processed_movies
 
-        return with_production_companies.select('title',
-                                                'production_companies',
-                                                'release_date', 'rating',
-                                                'revenue_budget_ratio',
-                                                'budget', 'revenue')
+        processed_movies = self.raw_movies
+
+        process_steps = [
+            self._clean_movies, self._calculate_revenue_budget_ratio,
+            self._add_year, self._add_production_company_names
+        ]
+
+        for step in process_steps:
+            processed_movies = step(processed_movies)
+
+        self.processed_movies = processed_movies
+
+        return processed_movies.select('title', 'production_companies',
+                                       'release_date', 'rating',
+                                       'revenue_budget_ratio', 'budget',
+                                       'revenue', 'year')
 
     def top_n_movies(self, n: int) -> DataFrame:
         return self.all_movies \

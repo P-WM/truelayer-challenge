@@ -2,7 +2,7 @@ from unittest import TestCase
 from decimal import Decimal
 from pyspark.sql import Row, SparkSession, DataFrame
 from pyspark.sql.functions import *
-from pyspark.sql.types import ArrayType, StructType, StructField, DecimalType, DateType, StringType
+from pyspark.sql.types import ArrayType, IntegerType, StructType, StructField, DecimalType, DateType, StringType
 
 from truelayer_challenge.movie_processor import MovieProcessor
 from test.fixtures import movies, movies_with_low_bud_or_rev
@@ -17,8 +17,7 @@ class TestMovieProcess(TestCase):
         cls.test_movies = cls.spark.createDataFrame(movies)
 
     def setUp(self):
-        self.test_processor = MovieProcessor(spark=self.spark,
-                                             data=self.test_movies)
+        self.test_processor = MovieProcessor(data=self.test_movies)
 
     def compare_unordered_dataframes(self, actual: DataFrame,
                                      expected: DataFrame):
@@ -44,7 +43,7 @@ class TestMovieProcess(TestCase):
         """
         test_movies = self.spark.createDataFrame(movies +
                                                  movies_with_low_bud_or_rev)
-        test_processor = MovieProcessor(spark=self.spark, data=test_movies)
+        test_processor = MovieProcessor(data=test_movies)
 
         actual_movies = test_processor._clean_movies(test_movies).select(
             'title', 'id')
@@ -109,9 +108,25 @@ class TestMovieProcess(TestCase):
             StructField('revenue_budget_ratio', DecimalType(8, 2), True),
             StructField('budget', DecimalType(15, 4), True),
             StructField('revenue', DecimalType(15, 4), True),
+            StructField('year', IntegerType(), True),
+            # StructField('movie_id', String)x
         ])
-        print(actual_schema)
+
         self.assertEqual(actual_schema, expected_schema)
+
+    def test_adds_the_correct_year(self):
+        clean_movies = self.test_processor._clean_movies(self.test_movies)
+        actual_movies = self.test_processor._add_year(clean_movies).select(
+            'title', 'year').collect()
+        expected_movies = [
+            Row(title='Executive Decision', year=1996),
+            Row(title='Mission: Impossible II', year=2000),
+            Row(title='Shalako', year=1968),
+            Row(title='Anywhere But Here', year=1999),
+            Row(title='The Strangers', year=2008)
+        ]
+
+        self.assertCountEqual(actual_movies, expected_movies)
 
     def test_calculates_ratios_correctly(self):
         upcast_movies = self.test_movies \
