@@ -61,7 +61,8 @@ class EnwikiMatcher:
             .join(explicitly_film_articles, 'movie_id', 'left_anti') \
             .union(explicitly_film_articles)
 
-        all_film_articles = same_title_articles.select('movie_id', 'url',
-                                                       'abstract')
+        all_film_articles = same_title_articles \
+            .select('movie_id', 'url', 'abstract') \
+            .drop_duplicates(['movie_id'])
 
         return all_film_articles

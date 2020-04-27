@@ -14,3 +14,9 @@ services:
             POSTGRES_USER: AzureDiamond
             POSTGRES_PASSWORD: hunter2
             POSTGRES_DB: true_film
+
+    adminer:
+        image: adminer
+        restart: always
+        ports:
+            - 8080:8080

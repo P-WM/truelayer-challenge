@@ -1,4 +1,4 @@
-# TrueLayer challenge - TrueFilm analytics 🎬
+# TrueLayer challenge - TrueFilm™️ analytics 🎬
 
 ## Using this project
 
@@ -13,7 +13,25 @@ They both have easy installers and on most platforms the installation for the de
 
 ### Running the pipeline
 
-TBC
+With the above installed, you can start the TrueFilm™️ pipeline by running the following command in the root directory of the project:
+
+```bash
+docker-compose up --build
+```
+
+I'm afraid it will be slow to build the first time, as it needs to download ~550MB worth of data but should be fine after that.
+
+### Viewing results
+
+`adminer` is running which will let you see the results.
+
+You can access it from your browser at `localhost:8080`. You will need the following to login:
+
+- System: `PostgreSQL`
+- Server: `postgres`
+- Username: `AzureDiamond`
+- Password: [hunter2](https://knowyourmeme.com/memes/hunter2)
+- Databse: `true_film`
 
 ## Choices
 
@@ -23,4 +41,4 @@ You will probably notice that the datasets for this pipeline come from different
 
 The movies metada from Kaggle was behind a registration wall (a prohibitively faffy step I wanted to avoid for the reviewer), so I made an easier public link for it.
 
-The wikimedia dump was a large (~7.6GB extracted), XML file. This is pretty cumbersome for analytics so I took the fields we want (`title`, `abstract` and `url`) and dumped them to a columnar format. The process for downloading and transforming the wikimedia data is in the `staging` folder should you want to reproduce the process.
+The wikimedia dump was a large (~7.6GB extracted), XML file. This is pretty cumbersome for analytics so I took the fields we want (`title`, `abstract` and `url`) and wrote them out to a columnar format. The process for downloading and transforming the wikimedia data is in the `staging` folder should you want to reproduce the process.
