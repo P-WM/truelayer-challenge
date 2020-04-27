@@ -2,4 +2,15 @@ version: '2.4'
 services:
     app:
       build: .
-      command: /usr/local/app/truelayer_challenge/main.py
+      depends_on:
+        - postgres
+      entrypoint: /usr/local/app/execute_when_ready
+
+    postgres:
+        image: postgres
+        ports:
+            - 5432:5432
+        environment:
+            POSTGRES_USER: AzureDiamond
+            POSTGRES_PASSWORD: hunter2
+            POSTGRES_DB: true_film

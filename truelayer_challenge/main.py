@@ -3,8 +3,11 @@ from os import path
 
 from truelayer_challenge.movie_processor import MovieProcessor
 from truelayer_challenge.enwiki_matcher import EnwikiMatcher
+from truelayer_challenge.models import create_all_tables
 
 if __name__ == '__main__':
+    create_all_tables()
+    raise RuntimeError('wat')
     spark = SparkSession.builder.master('local[*]').getOrCreate()
 
     datasets_path = f'{path.dirname(__file__)}/../datasets/'

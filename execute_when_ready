@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+until pg_isready -h postgres -p 5432
+do
+  echo "Waiting for postgres..."
+  sleep 2;
+done
+
+spark-submit --master "local[*]" --name "TrueFilm" /usr/local/app/truelayer_challenge/main.py
