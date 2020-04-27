@@ -109,7 +109,7 @@ class TestMovieProcess(TestCase):
             StructField('budget', DecimalType(15, 4), True),
             StructField('revenue', DecimalType(15, 4), True),
             StructField('year', IntegerType(), True),
-            # StructField('movie_id', String)x
+            StructField('movie_id', StringType(), False)
         ])
 
         self.assertEqual(actual_schema, expected_schema)
@@ -124,6 +124,23 @@ class TestMovieProcess(TestCase):
             Row(title='Shalako', year=1968),
             Row(title='Anywhere But Here', year=1999),
             Row(title='The Strangers', year=2008)
+        ]
+
+        self.assertCountEqual(actual_movies, expected_movies)
+
+    def test_adds_the_correct_movie_id(self):
+        """
+        This gives us something unique(ish) but deterministic to join on as movie titles are likely to collide
+        """
+        clean_movies = self.test_processor._clean_movies(self.test_movies)
+        actual_movies = self.test_processor._add_movie_id(clean_movies).select(
+            'movie_id', 'title').collect()
+        expected_movies = [
+            Row(title='Executive Decision', movie_id='FFFFFFFFBF6AD93F'),
+            Row(title='Mission: Impossible II', movie_id='25E22182'),
+            Row(title='Shalako', movie_id='FFFFFFFFB28C5FBD'),
+            Row(title='Anywhere But Here', movie_id='752E4DDB'),
+            Row(title='The Strangers', movie_id='46A353C9')
         ]
 
         self.assertCountEqual(actual_movies, expected_movies)

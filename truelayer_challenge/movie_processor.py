@@ -1,6 +1,6 @@
 from pyspark.sql import DataFrame
 from pyspark.sql.types import DecimalType, DateType, ArrayType, StructField, StructType, StringType
-from pyspark.sql.functions import col, from_json, year
+from pyspark.sql.functions import col, from_json, year, concat, hex as spark_hex, hash as spark_hash
 from typing import List
 
 
@@ -50,6 +50,11 @@ class MovieProcessor:
             .withColumn('year', year(movies.release_date))
 
     @staticmethod
+    def _add_movie_id(movies: DataFrame) -> DataFrame:
+        return movies \
+            .withColumn('movie_id', spark_hex(spark_hash(concat(movies.title, movies.release_date))))
+
+    @staticmethod
     def _titles_from_movies(movies: DataFrame) -> List[str]:
         return [movie.title for movie in movies.collect()]
 
@@ -62,7 +67,8 @@ class MovieProcessor:
 
         process_steps = [
             self._clean_movies, self._calculate_revenue_budget_ratio,
-            self._add_year, self._add_production_company_names
+            self._add_year, self._add_production_company_names,
+            self._add_movie_id
         ]
 
         for step in process_steps:
@@ -73,7 +79,7 @@ class MovieProcessor:
         return processed_movies.select('title', 'production_companies',
                                        'release_date', 'rating',
                                        'revenue_budget_ratio', 'budget',
-                                       'revenue', 'year')
+                                       'revenue', 'year', 'movie_id')
 
     def top_n_movies(self, n: int) -> DataFrame:
         return self.all_movies \
