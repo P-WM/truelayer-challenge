@@ -39,6 +39,7 @@ if __name__ == '__main__':
     logger.info("Writing to DB")
     try:
         s = session()
+        s.execute('TRUNCATE movies')
         for movie in movies_with_links:
             record = Movie(
                 id=movie.movie_id,
