@@ -1,0 +1,5 @@
+version: '2.4'
+services:
+    app:
+      build: .
+      command: /usr/local/app/truelayer_challenge/main.py
